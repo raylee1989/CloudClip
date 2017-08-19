@@ -16,26 +16,6 @@ list_dio = []
 
 id_p = load_eye_data()
 
-'''
-totaldata = loaddata(id_p)  # 得到总的数据 179个人的
-tdis = totaldata[:, 1]
-tlumi = totaldata[:, 2]
-tloglumi = np.log10(tlumi)
-tfiltered_dis = fft_analysis(tdis, 1 / 5, 0.04 / 100, 0)
-tfiltered_lumi = fft_analysis(tloglumi, 1 / 5, 0.04 / 100, 0)
-'''
-# 找到x,y轴的最值，用于分割
-'''
-mintfdis = np.min(tfiltered_dis)  # dis y
-maxtfdis = np.max(tfiltered_dis)
-mintflumi = np.min(tfiltered_lumi)  # lumi x
-maxtflumi = np.max(tfiltered_lumi)
-
-maxtfdis = 94.4748093286
-maxtflumi = 14.2489306754
-mintfdis = 0.00110214449141
-mintflumi = 4.30657766259e-05
-'''
 maxtfdis = 70.00001
 maxtflumi = 5.00001
 mintfdis = 0.0
@@ -61,20 +41,17 @@ print('70->%d, 50->%d, 15->%d, 0->%d' % (linear_mode.predict(70),linear_mode.pre
 
 # H_total = np.zeros((n,n))
 
-# for j in range(id_p.__len__()):
-for j in range(1):
+for j in range(id_p.__len__()):
+# for j in range(1):
     d, diopter = loadOneSample(id_p, j)
 
-    # ind = np.where(d[:, 1] == -10)
-    # d = np.delete(d, ind[0], axis=0)
-    # d, diopter, hour_minute = load_one_sample_no_patch(id_p, j)
+    ind = np.where(d[:, 1] == -10)
+    d = np.delete(d, ind[0], axis=0)
 
     dis = d[:, 1]  # matrix: n,1
 
-    #消除异方差性
-    # dis = np.log10(dis)
-    # ind = np.where(np.isnan(dis))
-    # dis[ind[0]] = -10
+    # 消除异方差性
+    dis = np.log10(dis)
 
     lumi = d[:, 2]  # matrix: n,1
     loglumi = np.log10(lumi)  # matrix: n,1
@@ -107,15 +84,7 @@ for j in range(1):
     # pl.ylim(mintfdis, maxtfdis)
 
     filtered_dis = linear_mode.predict(np.mat(filtered_dis).T).flatten()
-    # filtered_dis[filtered_dis > 50] = 50
-
-    # for i in range(filtered_dis.__len__()):
-    #     if filtered_dis[i] < 50:
-    #         filtered_dis[i] = linear_mode.predict(filtered_dis[i])
-    #     else:
-    #         filtered_dis[i] = 50
-
-    # filtered_dis = 10 ** filtered_dis
+    filtered_dis = 10 ** filtered_dis
 
     # pl.figure(42)
     # pl.grid()
@@ -181,6 +150,8 @@ for p in range(n):
             else:
                 pvalue = p_value(slope, list_x, list_y, mat_y)
             mat_pvalue[p, q] = pvalue
+
+            print('list_x.__len__():, slope:, pvalue:', list_x.__len__(), slope, p, q, pvalue)
             if pvalue > 0.05:
                 mat_slope[p, q] = 0.0
         else:
@@ -194,20 +165,20 @@ mat_slope[:, 0:valid_ind] = 0
 mat_pvalue[:, 0:valid_ind] = 1
 
 
-pl.figure(100)
+pl.figure(100, figsize=[16, 10])
 pl.axes([0.03, 0.2, 0.5, 0.6])
 pl.pcolor(txedges, tyedges, mat_pvalue.T, cmap='jet')
-pl.clim(0, 0.02)
 pl.xlabel('log(lumi)')
 pl.ylabel('distance')
 pl.colorbar()
+pl.clim(0, 0.05)
 pl.axes([0.53, 0.2, 0.5, 0.6])
 pl.pcolor(txedges, tyedges, mat_slope.T, cmap='jet')
 pl.xlabel('log(lumi)')
 pl.ylabel('distance')
 pl.colorbar()
 
-pl.figure(101)
+pl.figure(101, figsize=[16, 10])
 pl.axes([0.03, 0.2, 0.5, 0.6])
 pl.pcolor(txedges, tyedges, mat_pvalue.T, cmap='jet')
 pl.clim(0, 0.05)
